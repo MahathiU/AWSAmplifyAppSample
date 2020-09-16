@@ -1,11 +1,17 @@
 import { Injectable } from '@angular/core';
 import {Todo} from './todo';
+import { API } from 'aws-amplify';
+
 
 @Injectable({
   providedIn: 'root'
 })
 @Injectable()
 export class TodoDataService {
+
+  constructor() {
+    this.getAllTodos();
+  }
 
   // Placeholder for last id so we can simulate
   // automatic incrementing of ids
@@ -14,37 +20,62 @@ export class TodoDataService {
   // Placeholder for todos
   todos: Todo[] = [];
 
-  constructor() {
-  }
-
+  // Toggle todo complete
+  asycn
   // Simulate POST /todos
-  addTodo(todo: Todo): TodoDataService {
-    if (!todo.id) {
-      todo.id = ++this.lastId;
-    }
-    this.todos.push(todo);
-    return this;
+  // tslint:disable-next-line:typedef
+  async addTodo(todo: Todo) {
+    console.log('Adding a todo');
+    const data = {
+      body: {
+        item_name: todo.title,
+        is_completed: todo.complete
+      }
+    };
+    const todoData = await API.post('todosapi', '/todos', data);
+    console.log(todoData);
   }
 
   // Simulate DELETE /todos/:id
-  deleteTodoById(id: number): TodoDataService {
-    this.todos = this.todos
-      .filter(todo => todo.id !== id);
-    return this;
+  async deleteTodoById(id: string) {
+    console.log('Deleting a todo');
+    const data = {
+      body: {
+        item_name: id
+      }
+    };
+    const todoData = await API.del('todosapi', '/todos', data);
+    console.log(todoData);
   }
 
   // Simulate PUT /todos/:id
-  updateTodoById(id: number, values: Object = {}): Todo {
-    let todo = this.getTodoById(id);
-    if (!todo) {
-      return null;
-    }
-    Object.assign(todo, values);
-    return todo;
+  // tslint:disable-next-line:ban-types variable-name typedef
+  async updateTodoById(id: string, is_completed: boolean) {
+    console.log('Updating a todo');
+    const data = {
+      body: {
+        item_name: id,
+        is_completed
+      }
+    };
+    const todoData = await API.post('todosapi', '/todos', data);
+    console.log(todoData);
   }
 
   // Simulate GET /todos
-  getAllTodos(): Todo[] {
+  async getAllTodos(): Promise<Todo[]> {
+    console.log('Getting all todos');
+    this.todos = [];
+    const todoData = await API.get('todosapi', '/todos', []);
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < todoData.data.Items.length; i++) {
+      const id = i;
+      const title = todoData.data.Items[i].item_name;
+      const complete = todoData.data.Items[i].is_completed;
+      const todoObject = new Todo({id, title, complete});
+      this.todos.push(todoObject);
+    }
+    console.log(todoData.data.Items);
     return this.todos;
   }
 
@@ -55,12 +86,9 @@ export class TodoDataService {
       .pop();
   }
 
-  // Toggle todo complete
-  toggleTodoComplete(todo: Todo){
-    let updatedTodo = this.updateTodoById(todo.id, {
-      complete: !todo.complete
-    });
-    return updatedTodo;
+  // tslint:disable-next-line:typedef
+  async toggleTodoComplete(todo: Todo){
+    const updatedTodo = await this.updateTodoById(todo.title, !todo.complete);
   }
 
 }

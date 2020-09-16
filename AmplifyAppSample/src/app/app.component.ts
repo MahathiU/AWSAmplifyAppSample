@@ -20,19 +20,23 @@ export class AppComponent {
 
   addTodo() {
     this.todoDataService.addTodo(this.newTodo);
+    this.todoDataService.getAllTodos();
     this.newTodo = new Todo();
   }
 
   toggleTodoComplete(todo) {
     this.todoDataService.toggleTodoComplete(todo);
+    this.todoDataService.getAllTodos();
   }
 
   removeTodo(todo) {
-    this.todoDataService.deleteTodoById(todo.id);
+    this.todoDataService.deleteTodoById(todo.title);
+    this.todoDataService.getAllTodos();
   }
 
+  // tslint:disable-next-line:typedef
   get todos() {
-    return this.todoDataService.getAllTodos();
+    return this.todoDataService.todos;
   }
 
   // tslint:disable-next-line:use-lifecycle-interface typedef

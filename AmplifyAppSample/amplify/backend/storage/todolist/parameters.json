@@ -1,0 +1,5 @@
+{
+    "tableName": "todolist",
+    "partitionKeyName": "item_name",
+    "partitionKeyType": "S"
+}
